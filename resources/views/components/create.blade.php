@@ -68,22 +68,48 @@ new class extends Component
         $app = App::findOrFail($this->app_id);
         $version = ltrim($this->version, 'v');
 
-        // 1. Extract original name and extension
         $originalFileName = $this->binaryFile->getClientOriginalName();
-        $extension = $this->binaryFile->getClientOriginalExtension();
+        $extension = strtolower($this->binaryFile->getClientOriginalExtension());
         $baseName = pathinfo($originalFileName, PATHINFO_FILENAME);
 
-        // 2. Sanitize filename (e.g. "My Release (v1.0) Final.exe" -> "my-release-v1-0-final.exe")
-        $safeFileName = Str::slug($baseName) . ($extension ? '.' . strtolower($extension) : '');
+        // Temp path where Livewire stashed the file
+        $tempPath = $this->binaryFile->getRealPath();
 
-        // 3. Store with sanitized original name in versioned folder
-        $storedPath = $this->binaryFile->storeAs(
-            "releases/{$app->slug}/{$version}", 
-            $safeFileName, 
-            'local'
-        );
+        // Check if the uploaded file is an .exe file that needs zipping
+        if ($extension === 'exe') {
+            $zipBaseName = Str::slug($baseName);
+            $safeFileName = "{$zipBaseName}.zip";
+            $zipTempPath = sys_get_temp_dir() . '/' . uniqid('zip_') . '.zip';
 
-        // 4. Compute SHA256 checksum safely
+            // Create the zip archive in PHP temp folder
+            $zip = new ZipArchive();
+            if ($zip->open($zipTempPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                // Add the original .exe into the zip archive
+                $zip->addFile($tempPath, "{$zipBaseName}.exe");
+                $zip->close();
+            }
+
+            // Store the newly created ZIP file into disk
+            $directory = "releases/{$app->slug}/{$version}";
+            $storedPath = Storage::disk('local')->putFileAs(
+                $directory,
+                new \Illuminate\Http\File($zipTempPath),
+                $safeFileName
+            );
+
+            // Cleanup temporary server zip
+            @unlink($zipTempPath);
+        } else {
+            // Standard handling for files that are already .zip, .dmg, etc.
+            $safeFileName = Str::slug($baseName) . ($extension ? '.' . $extension : '');
+            $storedPath = $this->binaryFile->storeAs(
+                "releases/{$app->slug}/{$version}",
+                $safeFileName,
+                'local'
+            );
+        }
+
+        // Compute SHA256 checksum of stored file
         $sha256 = hash('sha256', Storage::disk('local')->get($storedPath));
 
         AppRelease::create([
@@ -91,7 +117,7 @@ new class extends Component
             'version' => $version,
             'platform' => $this->platform,
             'file_path' => $storedPath,
-            'file_size' => $this->binaryFile->getSize(),
+            'file_size' => Storage::disk('local')->size($storedPath),
             'checksum_sha256' => $sha256,
             'release_notes' => $this->release_notes,
             'is_mandatory' => $this->is_mandatory,

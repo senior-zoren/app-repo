@@ -134,11 +134,19 @@ class AppDistributionController extends Controller
             return response()->json(['error' => 'Installer binary missing on storage server.'], 404);
         }
 
-        $fileName = $release->file_name ?? "{$app->slug}_v{$release->version}.exe";
+        // 1. Get the actual extension from the stored file path (.zip, .exe, .dmg, etc.)
+        $extension = pathinfo($release->file_path, PATHINFO_EXTENSION);
+
+        // 2. Build the filename dynamically preserving the actual extension
+        $fileName = $release->file_name ?? "{$app->slug}_v{$release->version}.{$extension}";
+
         $absolutePath = Storage::disk('local')->path($release->file_path);
 
+        // 3. Set the correct MIME type dynamically
+        $contentType = strtolower($extension) === 'zip' ? 'application/zip' : 'application/octet-stream';
+
         return response()->download($absolutePath, $fileName, [
-            'Content-Type' => 'application/octet-stream',
+            'Content-Type' => $contentType,
             'X-Checksum-SHA256' => $release->checksum_sha256 ?? '',
             'Cache-Control' => 'no-cache, private',
         ]);
