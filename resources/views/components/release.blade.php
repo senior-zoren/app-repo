@@ -258,52 +258,52 @@ new class extends Component
         @endif
     </div>
 
-<!-- Edit Release Modal -->
-@if($showEditModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-xl shadow-2xl p-6 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white">Edit Release Details</h3>
-                <button type="button" wire:click="$set('showEditModal', false)" class="text-slate-400 hover:text-white">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+    <!-- Edit Release Modal -->
+    @if($showEditModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-xl shadow-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-lg font-bold text-white">Edit Release Details</h3>
+                    <button type="button" wire:click="$set('showEditModal', false)" class="text-slate-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Wrap controls inside a form with wire:submit -->
+                <form wire:submit="saveRelease" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Version</label>
+                        <input type="text" wire:model="editVersion" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500">
+                        @error('editVersion') <span class="text-xs text-rose-400 mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Platform</label>
+                        <select wire:model="editPlatform" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500">
+                            <option value="all">All Platforms</option>
+                            <option value="windows">Windows</option>
+                            <option value="macos">macOS</option>
+                            <option value="linux">Linux</option>
+                        </select>
+                        @error('editPlatform') <span class="text-xs text-rose-400 mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="editIsMandatory" wire:model="editIsMandatory" class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-0">
+                        <label for="editIsMandatory" class="text-sm text-slate-300">Mark as Mandatory Update</label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Release Notes / Changelog</label>
+                        <textarea wire:model="editReleaseNotes" rows="3" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+                        <button type="button" wire:click="$set('showEditModal', false)" class="px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg shadow-sm">Save Changes</button>
+                    </div>
+                </form>
             </div>
-
-            <!-- Wrap controls inside a form with wire:submit -->
-            <form wire:submit="saveRelease" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Version</label>
-                    <input type="text" wire:model="editVersion" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500">
-                    @error('editVersion') <span class="text-xs text-rose-400 mt-1">{{ $message }}</span> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Platform</label>
-                    <select wire:model="editPlatform" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500">
-                        <option value="all">All Platforms</option>
-                        <option value="windows">Windows</option>
-                        <option value="macos">macOS</option>
-                        <option value="linux">Linux</option>
-                    </select>
-                    @error('editPlatform') <span class="text-xs text-rose-400 mt-1">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="editIsMandatory" wire:model="editIsMandatory" class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-0">
-                    <label for="editIsMandatory" class="text-sm text-slate-300">Mark as Mandatory Update</label>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Release Notes / Changelog</label>
-                    <textarea wire:model="editReleaseNotes" rows="3" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500"></textarea>
-                </div>
-
-                <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
-                    <button type="button" wire:click="$set('showEditModal', false)" class="px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg shadow-sm">Save Changes</button>
-                </div>
-            </form>
         </div>
-    </div>
-@endif
+    @endif
 </div>
