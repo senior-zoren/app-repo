@@ -129,9 +129,9 @@ return [
     */
 
     'temporary_file_upload' => [
-        'disk' => env('LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK'), // Example: 'local', 's3'             | Default: 'default'
-        'rules' => ['required', 'file', 'max:512000'],        // Example: ['file', 'mimes:png,jpg'] | Default: ['required', 'file', 'max:12288'] (12MB)
-        'directory' => null,                                  // Example: 'tmp'                     | Default: 'livewire-tmp'
+        'disk' => env('LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK', 'local'), // Example: 'local', 's3'             | Default: 'default'
+        'rules' => ['required', 'file', 'max:524288'],        // Example: ['file', 'mimes:png,jpg'] | Default: ['required', 'file', 'max:524288'] (524MB)
+        'directory' => 'livewire-tmp',                                  // Example: 'tmp'                     | Default: 'livewire-tmp'
         'middleware' => null,                                 // Example: 'throttle:5,1'            | Default: 'throttle:60,1'
         'preview_mimes' => [                                  // Supported file types for temporary pre-signed file URLs...
             'png', 'gif', 'bmp', 'svg', 'wav', 'mp4',
