@@ -72,30 +72,28 @@ new class extends Component
         $extension = strtolower($this->binaryFile->getClientOriginalExtension());
         $baseName = pathinfo($originalFileName, PATHINFO_FILENAME);
 
-        // Temp path where Livewire stashed the file
+        // Temp path where Livewire stashed the uploaded file
         $tempPath = $this->binaryFile->getRealPath();
 
         // Check if the uploaded file is an .exe file that needs zipping
         if ($extension === 'exe') {
             $zipBaseName = Str::slug($baseName);
             $safeFileName = "{$zipBaseName}.zip";
-            $zipTempPath = sys_get_temp_dir() . '/' . uniqid('zip_') . '.zip';
+            $zipTempPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('zip_') . '.zip';
 
-            // Create the zip archive in PHP temp folder
-            $zip = new ZipArchive();
-            if ($zip->open($zipTempPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            // Create the zip archive in PHP temp folder using root namespace reference
+            $zip = new \ZipArchive();
+            if ($zip->open($zipTempPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
                 // Add the original .exe into the zip archive
                 $zip->addFile($tempPath, "{$zipBaseName}.exe");
                 $zip->close();
             }
 
-            // Store the newly created ZIP file into disk
             $directory = "releases/{$app->slug}/{$version}";
-            $storedPath = Storage::disk('local')->putFileAs(
-                $directory,
-                new \Illuminate\Http\File($zipTempPath),
-                $safeFileName
-            );
+            $storedPath = "{$directory}/{$safeFileName}";
+
+            // Save directly via binary stream content to prevent Windows file-handle lock errors
+            Storage::disk('local')->put($storedPath, file_get_contents($zipTempPath));
 
             // Cleanup temporary server zip
             @unlink($zipTempPath);
